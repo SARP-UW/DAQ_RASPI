@@ -1,0 +1,38 @@
+
+'''
+adc {
+    miso_pin
+    mosi_pin
+    sclk_pin
+    cs_pin
+    
+    read_data(input_num)  
+}
+
+sensor {
+    conversion function
+    filepath to save
+    String: name
+    ADC: to read from
+    ADC_input_num: input_on_adc
+    
+    display_strategy: func
+    save_strategy(filepath): func
+    
+    #update(){
+    
+        #read from adc
+        #save (maybe buffer to reduce write operations)
+        
+        #display: uses display strategy
+    }
+}
+
+[var0, var1, var2]
+
+for each var:
+    var.update()
+
+
+'''
+
