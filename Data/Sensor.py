@@ -1,5 +1,6 @@
 from typing import Callable
-import ADC
+from Data import ADC
+
 
 class Sensor:
 

@@ -1,7 +1,7 @@
 
 from typing import Callable
-from Sensor import Sensor
-from ADC import ADC, ADS124S06
+from Data.Sensor import Sensor
+from Data.ADC import ADC, ADS124S06
 import time
 
 
@@ -24,7 +24,7 @@ def main() -> None:
     testSensor: Sensor = Sensor(
         "test",
         conversion_func,
-        "save.txt",
+        "Data/save.txt",
         adc,
         0,
 
