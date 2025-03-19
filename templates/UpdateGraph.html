@@ -6,19 +6,17 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-  <style>
-    canvas {
-      border: 1px solid #000;
-    }
-  </style>
 </head>
 <body>
-<canvas id="myChart" width="400" height="200"></canvas>
+<div id="container">
+  <canvas id="chart1"></canvas>
+  <canvas id="chart2"></canvas>
+</div>
 <script>
+  const ctx1 = document.getElementById('chart1').getContext('2d');
+  const ctx2 = document.getElementById('chart2').getContext('2d');
 
-  const ctx = document.getElementById('myChart').getContext('2d');
-
-  const data = {
+  const data1 = {
     labels: [],
     datasets: [{
       label: 'Live Data',
@@ -30,11 +28,45 @@
     }]
   };
 
-  const config = {
+  const data2 = {
+    labels: [],
+    datasets: [{
+      label: 'Live Data',
+      borderColor: 'rgba(75, 192, 192, 1)',
+      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      data: [],
+      fill: true,
+      tension: 0.1
+    }]
+  };
+
+  const config1 = {
     type: 'line',
-    data: data,
+    data: data1,
     options: {
       responsive: true,
+      maintainAspectRatio: false,  // Allow canvas to fill its container
+      scales: {
+        x: {
+          type: 'linear',
+          position: 'bottom'
+        },
+        y: {
+          beginAtZero: false
+        }
+      },
+      animation: {
+        duration: 0
+      }
+    }
+  };
+
+  const config2 = {
+    type: 'line',
+    data: data2,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
       scales: {
         x: {
           type: 'linear',
@@ -51,22 +83,36 @@
   };
 
   const socket = io.connect("http://" + document.domain + ":" + location.port);
-  const chart = new Chart(ctx, config);
+  const chart1 = new Chart(ctx1, config1);
+  const chart2 = new Chart(ctx2, config2);
 
-  socket.on('message', function(message) {
-      const csvData = message;
-      console.log("got data");
-      Papa.parse(csvData, {
+  socket.on('message', function (message) {
+    const message_array = message.split(":");
+    if (message_array[0] == "test1") {
+      Papa.parse(message_array[1], {
         complete: function (results) {
           const parsedData = results.data;
           const validData = parsedData.filter(row => row.length >= 2 && !isNaN(row[1]));
           const newLabels = validData.map(row => row[0]);
           const newData = validData.map(row => row[1]);
-          data.labels = newLabels;
-          data.datasets[0].data = newData;
-          chart.update();
+          data1.labels = newLabels;
+          data1.datasets[0].data = newData;
+          chart1.update();
         }
       });
+    } else {
+      Papa.parse(message_array[1], {
+        complete: function (results) {
+          const parsedData = results.data;
+          const validData = parsedData.filter(row => row.length >= 2 && !isNaN(row[1]));
+          const newLabels = validData.map(row => row[0]);
+          const newData = validData.map(row => row[1]);
+          data2.labels = newLabels;
+          data2.datasets[0].data = newData;
+          chart2.update();
+        }
+      });
+    }
   });
 
   socket.on("error", function (error) {
@@ -76,7 +122,6 @@
   socket.on("close", function (event) {
     console.log('WebSocket closed: ', event);
   });
-
 </script>
 </body>
 </html>

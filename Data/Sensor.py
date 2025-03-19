@@ -1,5 +1,6 @@
 from typing import Callable
-from Data import ADC
+import random
+from Data.Display import Display
 
 
 class Sensor:
@@ -7,25 +8,23 @@ class Sensor:
     def __init__(self,
                  adcName: str,
                  conversion_function: Callable[[float], float],
-                 filepath: str,
-                 adc: ADC.ADC,
                  ADCInputNum: int,
 
-                 displayStrategy: Callable[[str], None],
-                 saveStrategy: Callable[[str, float], None]
+                 display: Display,
+                 saveStrategy: Callable[[float], None]
                  ):
         self.adcName: str = adcName
         self.conversion_function: Callable[[float], float] = conversion_function
-        self.filepath: str = filepath
-        self.adc: ADC.ADC = adc
         self.ADCInputNum: int = ADCInputNum
 
-        self.displayStrategy: Callable[[str], None] = displayStrategy
-        self.saveStrategy: Callable[[str, float], None] = saveStrategy
+        self.display: Display = display
+        self.saveStrategy: Callable[[float], None] = saveStrategy
 
-    def update(self) -> None:
-        voltage: float = self.adc.read_voltage(self.ADCInputNum)
+    def update(self, time_stamp: float) -> None:
+        voltage: float = random.randint(0, 10)
         value: float = self.conversion_function(voltage)
 
-        self.saveStrategy(self.filepath, value)
-        self.displayStrategy(self.filepath)
+        self.saveStrategy(value)
+
+        data: [] = [str(time_stamp), str(value)]
+        self.display.update(data)

@@ -1,10 +1,10 @@
 import threading
 from typing import Callable
 from Data.Sensor import Sensor
-from Data.ADC import ADC, ADS124S06
 import Website.Frontend as frontend
+from Data.Display import Display, Display_Type
 import time
-
+from functools import partial
 
 
 def saveStrategy(filepath: str, value: float) -> None:
@@ -12,35 +12,36 @@ def saveStrategy(filepath: str, value: float) -> None:
         file.write(str(time.time()) + ", " + str(value) + "\n")
 
 
-def displayStrategy(file_path: str) -> None:
-    with open(file_path, 'r') as file:
-        file_content = file.read()
-        frontend.broadcast_message(file_content)
-
 
 def main() -> None:
     conversion_func: Callable[[float], float] = lambda x: x % 10
 
-    adc: ADC = ADS124S06(0, 0)
-
-    testSensor: Sensor = Sensor(
-        "test",
+    testSensor1: Sensor = Sensor(
+        "test1",
         conversion_func,
-        "Data/save.txt",
-        adc,
         0,
 
-        displayStrategy,
-        saveStrategy
+        Display("test1", Display_Type.LINE_CHART, 10, ["timestamp", "value"]),
+        partial(saveStrategy, "logs/testsensor1.txt")
+    )
+
+    testSensor2: Sensor = Sensor(
+        "test2",
+        conversion_func,
+        0,
+
+        Display("test2", Display_Type.LINE_CHART, 10, ["timestamp", "value"]),
+        partial(saveStrategy, "logs/testsensor2.txt")
     )
 
     thread = threading.Thread(target=frontend.start_flask, daemon=True)
     thread.start()
 
     while True:
-        testSensor.update()
+        testSensor1.update(time.time())
+        time.sleep(0.5)
+        testSensor2.update(time.time())
         time.sleep(1)
-
 
 
 if __name__ == '__main__':
