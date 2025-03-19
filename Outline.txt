@@ -39,51 +39,5 @@ for each var:
 
 
 
-
-const ctx = document.getElementById('myChart').getContext('2d');
-
-  const data = {
-    labels: [],
-    datasets: [{
-      label: 'Live Data',
-      borderColor: 'rgba(75, 192, 192, 1)',
-      backgroundColor: 'rgba(75, 192, 192, 0.2)',
-      data: [],
-      fill: true,
-      tension: 0.1
-    }]
-  };
-
-  const config = {
-    type: 'line',
-    data: data,
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          type: 'linear',
-          position: 'bottom'
-        },
-        y: {
-          beginAtZero: false
-        }
-      },
-      animation: {
-        duration: 0
-      }
-    }
-  };
-
-const chart = new Chart(ctx, config);
-
-Papa.parse(csvData, {
-      complete: function (results) {
-        const parsedData = results.data;
-        const validData = parsedData.filter(row => row.length >= 2 && !isNaN(row[1]));
-        const newLabels = validData.map(row => row[0]);
-        const newData = validData.map(row => row[1]);
-        data.labels = newLabels;
-        data.datasets[0].data = newData
-        chart.update();
-      }
-    });
+USE https://codepen.io/jkantner/pen/dPyWKqb
+Make sure it works well on phone
