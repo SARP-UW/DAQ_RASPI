@@ -1,0 +1,82 @@
+<html lang="en">
+<head>
+  <meta charSet="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Line Plot with WebSocket & CSV</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <style>
+    canvas {
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+<canvas id="myChart" width="400" height="200"></canvas>
+<script>
+
+  const ctx = document.getElementById('myChart').getContext('2d');
+
+  const data = {
+    labels: [],
+    datasets: [{
+      label: 'Live Data',
+      borderColor: 'rgba(75, 192, 192, 1)',
+      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      data: [],
+      fill: true,
+      tension: 0.1
+    }]
+  };
+
+  const config = {
+    type: 'line',
+    data: data,
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          type: 'linear',
+          position: 'bottom'
+        },
+        y: {
+          beginAtZero: false
+        }
+      },
+      animation: {
+        duration: 0
+      }
+    }
+  };
+
+  const socket = io.connect("http://" + "localhost" + ":" + "5001");
+  const chart = new Chart(ctx, config);
+
+  socket.onmessage = function (event) {
+    const csvData = event.data;
+    console.log("got data")
+    Papa.parse(csvData, {
+      complete: function (results) {
+        const parsedData = results.data;
+        const validData = parsedData.filter(row => row.length >= 2 && !isNaN(row[1]));
+        const newLabels = validData.map(row => row[0]);
+        const newData = validData.map(row => row[1]);
+        data.labels = newLabels;
+        data.datasets[0].data = newData
+        chart.update();
+      }
+    });
+  };
+
+  socket.onerror = function (error) {
+    console.error('WebSocket error: ', error);
+  };
+
+  socket.onclose = function (event) {
+    console.log('WebSocket closed: ', event);
+  };
+
+</script>
+</body>
+</html>

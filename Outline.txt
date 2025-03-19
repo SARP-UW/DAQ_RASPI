@@ -36,3 +36,6 @@ for each var:
 
 '''
 
+
+thread = threading.Thread(target=host_server, daemon=True)
+thread.start()

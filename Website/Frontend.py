@@ -1,23 +1,17 @@
-from flask import Flask, render_template_string
+from flask import Flask, render_template
+from flask_socketio import SocketIO
 
 app = Flask("daq")
+socketio = SocketIO(app)
 
 
 @app.route('/')
 def index():
-    return render_template_string("""
-        <html>
-            <head>
-                <title>
-                    Data Display
-                </title>
-            </head>
-            <body>
-                <h1>Sensor Data</h1>
-                <p>Temperature</p>
-            </body>
-        </html>
-    """)
+    return render_template('UpdateGraph.html')
 
 
-app.run(host="0.0.0.0", port=5002)
+def broadcast_message(message):
+    socketio.emit('message', message)
+
+
+socketio.run(app, "0.0.0.0", 5001, allow_unsafe_werkzeug=True, ssl_context = 'adhoc')

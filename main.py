@@ -2,6 +2,7 @@
 from typing import Callable
 from Data.Sensor import Sensor
 from Data.ADC import ADC, ADS124S06
+import Website.Frontend as frontend
 import time
 
 
@@ -12,7 +13,7 @@ def saveStrategy(filepath: str, value: float) -> None:
 
 
 def displayStrategy(value: float) -> None:
-    print(value)
+    frontend.broadcast_message(str(value))
 
 
 
