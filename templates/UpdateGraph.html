@@ -50,33 +50,32 @@
     }
   };
 
-  const socket = io.connect("ws://" + "localhost" + ":" + "5001");
+  const socket = io.connect("http://" + document.domain + ":" + location.port);
   const chart = new Chart(ctx, config);
 
-
-  socket.on('message', function (data) {
-    const csvData = data.data;
-    console.log("got data");
-    Papa.parse(csvData, {
-      complete: function (results) {
-        const parsedData = results.data;
-        const validData = parsedData.filter(row => row.length >= 2 && !isNaN(row[1]));
-        const newLabels = validData.map(row => row[0]);
-        const newData = validData.map(row => row[1]);
-        data.labels = newLabels;
-        data.datasets[0].data = newData
-        chart.update();
-      }
-    });
+  socket.on('message', function(message) {
+      const csvData = message;
+      console.log("got data");
+      Papa.parse(csvData, {
+        complete: function (results) {
+          const parsedData = results.data;
+          const validData = parsedData.filter(row => row.length >= 2 && !isNaN(row[1]));
+          const newLabels = validData.map(row => row[0]);
+          const newData = validData.map(row => row[1]);
+          data.labels = newLabels;
+          data.datasets[0].data = newData;
+          chart.update();
+        }
+      });
   });
 
-  socket.onerror = function (error) {
+  socket.on("error", function (error) {
     console.error('WebSocket error: ', error);
-  };
+  });
 
-  socket.onclose = function (event) {
+  socket.on("close", function (event) {
     console.log('WebSocket closed: ', event);
-  };
+  });
 
 </script>
 </body>

@@ -15,4 +15,4 @@ def broadcast_message(message):
 
 
 def start_flask():
-    socketio.run(app, "localhost", 5001, allow_unsafe_werkzeug=True)
+    socketio.run(app, "0.0.0.0", 5001, allow_unsafe_werkzeug=True)

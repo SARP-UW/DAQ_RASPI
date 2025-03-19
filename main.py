@@ -12,9 +12,10 @@ def saveStrategy(filepath: str, value: float) -> None:
         file.write(str(time.time()) + ", " + str(value) + "\n")
 
 
-def displayStrategy(value: float) -> None:
-    frontend.broadcast_message(str(value))
-
+def displayStrategy(file_path: str) -> None:
+    with open(file_path, 'r') as file:
+        file_content = file.read()
+        frontend.broadcast_message(file_content)
 
 
 def main() -> None:
