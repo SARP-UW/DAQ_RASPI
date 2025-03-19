@@ -50,12 +50,13 @@
     }
   };
 
-  const socket = io.connect("http://" + "localhost" + ":" + "5001");
+  const socket = io.connect("ws://" + "localhost" + ":" + "5001");
   const chart = new Chart(ctx, config);
 
-  socket.onmessage = function (event) {
-    const csvData = event.data;
-    console.log("got data")
+
+  socket.on('message', function (data) {
+    const csvData = data.data;
+    console.log("got data");
     Papa.parse(csvData, {
       complete: function (results) {
         const parsedData = results.data;
@@ -67,7 +68,7 @@
         chart.update();
       }
     });
-  };
+  });
 
   socket.onerror = function (error) {
     console.error('WebSocket error: ', error);

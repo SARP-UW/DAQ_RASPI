@@ -1,4 +1,4 @@
-
+import threading
 from typing import Callable
 from Data.Sensor import Sensor
 from Data.ADC import ADC, ADS124S06
@@ -33,6 +33,8 @@ def main() -> None:
         saveStrategy
     )
 
+    thread = threading.Thread(target=frontend.start_flask, daemon=True)
+    thread.start()
 
     while True:
         testSensor.update()
