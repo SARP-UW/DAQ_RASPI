@@ -21,7 +21,7 @@ def main() -> None:
         conversion_func,
         0,
 
-        Display("test1", Display_Type.LINE_CHART, 10, ["timestamp", "value"]),
+        Display("test1", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
         partial(saveStrategy, "logs/testsensor1.txt")
     )
 
@@ -30,7 +30,16 @@ def main() -> None:
         conversion_func,
         0,
 
-        Display("test2", Display_Type.LINE_CHART, 10, ["timestamp", "value"]),
+        Display("test2", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
+        partial(saveStrategy, "logs/testsensor2.txt")
+    )
+
+    testSensor3: Sensor = Sensor(
+        "test3",
+        conversion_func,
+        0,
+
+        Display("test3", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
         partial(saveStrategy, "logs/testsensor2.txt")
     )
 
@@ -39,8 +48,10 @@ def main() -> None:
 
     while True:
         testSensor1.update(time.time())
-        time.sleep(0.5)
-        testSensor2.update(time.time())
+        # time.sleep(0.5)
+        # testSensor2.update(time.time())
+        # time.sleep(0.5)
+        # testSensor3.update(time.time())
         time.sleep(1)
 
 

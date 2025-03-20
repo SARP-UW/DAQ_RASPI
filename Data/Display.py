@@ -21,6 +21,9 @@ class Display:
         self.column_names = column_names
         self.history: Deque = Deque()  # contains arrays (each line in csv format), with length history_size
 
+    # Data msg: <name>:<time>, <value>
+    # Init msg: <name>, <graph1>, <graph2>:<name>, <graph1>:<name>, <graph2> ...
+
     def build_packet(self) -> str:
         csv: str = ""
         for datum in self.history:
@@ -28,7 +31,10 @@ class Display:
                 csv += str(p) + ","
 
             csv = csv[:-1]
-            csv += "\n "
+            csv += "\n"
+
+        if len(self.history) == 1:
+            csv = csv[:-1]
 
         return self.name + ":" + csv
 
