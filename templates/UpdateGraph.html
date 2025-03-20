@@ -11,119 +11,95 @@
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/smoothie/1.34.0/smoothie.min.js"></script>
 
 </head>
-<body>
-  <div id="chart-grid">
-    <canvas id="tmp" width="500", height="100"></canvas>
+<body id="body">
+  <div id="display-grid">
   </div>
   <script type="text/javascript">
 
-    // List of colors for charts
-    const COLOR_LIST = [
-      "#ff0000",
-      "#ff6200",
-      "#ffcc00",
-      "#80ff00",
-      "#00ff7b",
-      "#00f2ff",
-      "#0077ff",
-      "#9000ff",
-      "#e600ff",
-      "#ff006a"
-    ];
-
-    // Global variables
-    let firstMsgFlag = true;
-    let chartMap = new Map();
-    let seriesMap = new Map();
+    // Socket message handler
+    var initMsgFlag = true;
+    var sourceList = [];
+    var displayList = [];
 
     // Setup socket connection for domain/port
     const socket = io.connect("http://" + document.domain + ":" + location.port);
 
-    // On message from socket update time series with new data for source.
     socket.on('message', function(message) {
 
-      // Split socket message into array of elements
-      let splitMsg = message.split(":");
+      // If this is first message...
+      if (initMsgFlag) {
+        initMsgFlag = false;
 
-      // If first message... (clear flag)
-      if (firstMsgFlag) {
-        firstMsgFlag = false;
+        // Iterate through source info in init msg
+        for (let sourceInfo of message.split(":")) {
 
-        // Iterate through sources in init msg
-        splitMsg.forEach(function(sourceInfo) {
+          // Parse source name and list of display names
+          let splitInfo = sourceInfo.split(",");
+          let sourceName = splitInfo[0];
+          let displayNames = splitInfo.slice(1);
 
-          // Extract source name and chart list from message array.
-          let sourceInfoArray = sourceInfo.split(",");
-          let sourceName = sourceInfoArray[0];
-          let sourceChartList = sourceInfoArray.slice(1);
+          // Create time series for source and object for sourceList
+          let sourceTimeSeries = new TimeSeries();
+          let sourceObj = {name: sourceName, timeSeries: sourceTimeSeries};
+          sourceList.push(sourceObj);
 
-          // Create new time series for source and add it to map with name.
-          let newSeries = new TimeSeries();
-          seriesMap.set(sourceName, newSeries);
+          // Iterate through display names for source
+          for (let displayName of displayNames) {
 
-          // Iterate through list of chart for source
-          sourceChartList.forEach(function (chartName) {
+            // Find display object with current name in displayList
+            let displayObj = displayList.find(element => element.name === displayName);
 
-            // If cur chart does not exist...
-            if (!chartMap.has(chartName)) {
+            // If display object does not exist, create it
+            if (displayObj === undefined) {
 
-              // Initialize new canvas for chart
-              let newCanvas = document.createElement("canvas");
-              newCanvas.width = "500";
-              newCanvas.height = "100";
-              document.getElementById("chart-grid").appendChild(newCanvas);
+              // Initialize container for display HTML elements
+              let displayContainer = document.createElement("div");
+              displayContainer.class = "display-container";
+              displayContainer.id = displayName + "-container";
+              document.getElementById("display-grid").appendChild(displayContainer);
 
-              // Initialize new smoothie chart and add it to map with name.
-              let newChart = new SmoothieChart();
-              chartMap.set(chartName, newChart);
+              // Initialize canvas for display's smoothie chart
+              let displayCanvas = document.createElement("canvas");
+              displayCanvas.class = "display-canvas";
+              displayCanvas.id = displayName + "-canvas";
+              displayCanvas.width = 500;
+              displayCanvas.height = 100;
+              displayContainer.appendChild(displayCanvas);
+
+              // Initialize smoothie chart and link it to above canvas
+              let displayChart = new SmoothieChart();
+              displayChart.streamTo(displayCanvas, 500);
+
+              // Create new display object, add it to displayList
+              let newDisplayObj = {name: displayName, chart: displayChart, container: displayContainer};
+              displayList.push(newDisplayObj);
+              displayObj = newDisplayObj;
             }
-
-            // Find target chart from chartMap
-            let targetChart = chartMap.get(chartName);
-
-            // Find color not used in chart
-            let seriesColor = COLOR_LIST[0];
-            COLOR_LIST.forEach(function (cur_color) {
-              if (targetChart.seriesSet.find((element) =>
-                  element.options.strokeStyle === cur_color) !== undefined) {
-                seriesColor = cur_color;
-                return;
-              }
-            });
-
-            // Add series to chart with color
-            targetChart.addTimeSeries(newSeries);
-            chartMap.get(chartName).streamTo(document.getElementById("tmp"), 1000);
-          });
-        });
-
-
-      // If not first message...
+            // Add source's time series to display's smoothie chart
+            displayObj.chart.addTimeSeries(sourceTimeSeries);
+          }
+        }
       } else {
-
-        // Parse message to get source name and new data.
+        // Parse source name and data str from message
+        let splitMsg = message.split(":");
         let sourceName = splitMsg[0];
-        let sourceData = splitMsg[1].split(",");
-        let sourceTime = parseFloat(sourceData[0]);
-        let sourceValue = parseFloat(sourceData[1]);
+        let dataStr = splitMsg[1].split(",");
 
-        // Append new data to the source's series.
-        seriesMap.get(sourceName).append(sourceTime, sourceValue);
+        // Parse data from data string
+        let timeValue = parseFloat(dataStr[0]) * 1000;
+        let dataValue = parseFloat(dataStr[1]);
 
-        console.log(seriesMap.get(sourceName));
+        // Find source object with target name in source list
+        let sourceObj = sourceList.find(element => element.name === sourceName);
+        if (sourceObj === undefined) {
+          throw new Error("Source object not found in source list");
+        }
+        // Append new data to source's time series
+        sourceObj.timeSeries.append(timeValue, dataValue);
 
+        console.log(sourceObj);
       }
     });
-
-      // var random = new TimeSeries();
-      // setInterval(function() {
-      //   random.append(Date.now(), Math.random() * 10000);
-      // }, 500);
-      //
-      // var chart = new SmoothieChart();
-      // chart.addTimeSeries(random, { strokeStyle: 'rgba(0, 255, 0, 1)', fillStyle: 'rgba(0, 255, 0, 0.2)', lineWidth: 4 });
-      // chart.streamTo(document.getElementById("chart"), 500);
-
 
     socket.on("error", function (error) {
       console.error('WebSocket error: ', error);
@@ -132,6 +108,33 @@
     socket.on("close", function (event) {
       console.log('WebSocket closed: ', event);
     });
+
+    // var random = new TimeSeries();
+    // setInterval(function() {
+    //   random.append(Date.now(), Math.random() * 10000);
+    // }, 500);
+    
+    // var chart = new SmoothieChart();
+    // var canvas = document.createElement('canvas');
+    // canvas.width = 1000;
+    // canvas.height = 400;
+    // document.getElementById("chart-grid").appendChild(canvas);
+    // chart.streamTo(canvas, 500);
+    // chart.addTimeSeries(random, { strokeStyle: 'rgba(0, 255, 0, 1)', fillStyle: 'rgba(0, 255, 0, 0.2)', lineWidth: 4 });
+
+    // // List of colors for charts
+    // const COLOR_LIST = [
+    //   "#ff0000",
+    //   "#ff6200",
+    //   "#ffcc00",
+    //   "#80ff00",
+    //   "#00ff7b",
+    //   "#00f2ff",
+    //   "#0077ff",
+    //   "#9000ff",
+    //   "#e600ff",
+    //   "#ff006a"
+    // ];
 
   </script>
   <style>

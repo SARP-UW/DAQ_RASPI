@@ -14,7 +14,7 @@ def control():
     return "Hello World"
 
 
-join_message = "test1,graph1"
+join_message = "test1,graph1:test2,graph2,graph3:test3,graph1"
 @socketio.on('connect')
 def on_connect():
     sid = request.sid
