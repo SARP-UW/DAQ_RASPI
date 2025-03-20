@@ -48,11 +48,11 @@ def main() -> None:
 
     while True:
         testSensor1.update(time.time())
-        time.sleep(0.5)
+        time.sleep(0.1)
         testSensor2.update(time.time())
-        time.sleep(0.5)
+        time.sleep(0.1)
         testSensor3.update(time.time())
-        time.sleep(1)
+        time.sleep(0.1)
 
 
 if __name__ == '__main__':
