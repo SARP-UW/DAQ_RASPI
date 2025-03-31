@@ -4,21 +4,21 @@ from flask_socketio import SocketIO
 app = Flask("daq")
 socketio = SocketIO(app)
 
-
 @app.route('/')
 def index():
-    return render_template('UpdateGraph.html')
+    return render_template('daq_vis.html')
 
 @app.route('/control')
 def control():
     return "Hello World"
 
 
-join_message = "test1,c,graph1:test2,c,graph2,graph3:test3,c,graph1,graph3"
+join_message = "test1,c,graph1:test2,c,graph1,graph3:test3,c,graph1,graph3:test4,c,graph1,graph3:test5,c,graph1,graph2"
 @socketio.on('connect')
 def on_connect():
     sid = request.sid
     socketio.emit("message", join_message, room=sid)
+    
 @socketio.on("message")
 def onReceive(message):
     pass
