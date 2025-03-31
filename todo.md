@@ -18,6 +18,8 @@ class source (name, unit)
 
 # PACKET FORMAT
 
+CONFIGURE IN COMMAND LINE 
+
 ## TODO keep track of graphs and sources and their linkages in the python
 
 ## Data
