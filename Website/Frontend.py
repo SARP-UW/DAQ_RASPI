@@ -15,6 +15,16 @@ def control():
 
 
 join_message = "test1,c,graph1:test2,c,graph2,graph3:test3,c,graph1,graph3"
+
+'''
+{
+    tag: "join",
+    source1 : {unit = c, graphs = [graph1, graph2, graph3]},
+    source2 : ...
+},
+'''
+
+
 @socketio.on('connect')
 def on_connect():
     sid = request.sid

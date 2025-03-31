@@ -11,48 +11,47 @@ def saveStrategy(filepath: str, value: float) -> None:
     with open(filepath, "a") as file:
         file.write(str(time.time()) + ", " + str(value) + "\n")
 
-
-
-def main() -> None:
+def generateSensors() -> [Sensor]:
     conversion_func: Callable[[float], float] = lambda x: x % 10
 
-    testSensor1: Sensor = Sensor(
-        "test1",
-        conversion_func,
-        0,
+    return [
+        Sensor(
+            "test1",
+            conversion_func,
+            0,
 
-        Display("test1", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
-        partial(saveStrategy, "logs/testsensor1.txt")
-    )
+            Display("test1", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
+            partial(saveStrategy, "logs/testsensor1.txt")
+        ),
+        Sensor(
+            "test2",
+            conversion_func,
+            0,
 
-    testSensor2: Sensor = Sensor(
-        "test2",
-        conversion_func,
-        0,
+            Display("test2", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
+            partial(saveStrategy, "logs/testsensor2.txt")
+        ),
+        Sensor(
+            "test3",
+            conversion_func,
+            0,
 
-        Display("test2", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
-        partial(saveStrategy, "logs/testsensor2.txt")
-    )
+            Display("test3", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
+            partial(saveStrategy, "logs/testsensor2.txt")
+        )
+    ]
 
-    testSensor3: Sensor = Sensor(
-        "test3",
-        conversion_func,
-        0,
-
-        Display("test3", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
-        partial(saveStrategy, "logs/testsensor2.txt")
-    )
+def main() -> None:
 
     thread = threading.Thread(target=frontend.start_flask, daemon=True)
     thread.start()
 
+    sensors = generateSensors()
+
     while True:
-        testSensor1.update(time.time())
-        time.sleep(0.1)
-        testSensor2.update(time.time())
-        time.sleep(0.1)
-        testSensor3.update(time.time())
-        time.sleep(0.1)
+        for sensor in sensors:
+            sensor.update(time.time())
+            time.sleep(0.1)
 
 
 if __name__ == '__main__':

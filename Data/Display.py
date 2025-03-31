@@ -1,6 +1,6 @@
+import json
 from enum import Enum
 from collections import deque as Deque
-import types
 import Website.Frontend as FrontEnd
 
 class Display_Type(Enum):
@@ -10,6 +10,33 @@ class Display_Type(Enum):
     PIE_CHART = 3
     # ect ...
 
+class DataHistory:
+
+    def __init__(self, max_size: int, column_names: [str]):
+        self.history: Deque = Deque()  # contains arrays (each line in csv format), with length history_size
+        self.max_size: int = max_size
+        self.column_names: [str] = column_names
+
+    def push(self, data_line: []):
+        if not (len(data_line) == len(self.column_names)):
+            raise ValueError("Line of data must be same size as amount of titles")
+
+        self.history.appendleft(data_line)
+        if len(self.history) > self.max_size:
+            self.history.pop()  # remove element from end (oldest element)
+
+    def __dict__(self):
+        timestamps: [] = []
+        values: [] = []
+
+        for pair in self.history:
+            timestamps.append(pair[0])
+            values.append(pair[1])
+
+        return {
+            "timestamps" : timestamps,
+            "values" : values,
+        }
 
 class Display:
 
@@ -17,33 +44,20 @@ class Display:
         self.name: str = name
         self.display_type: Display_Type = display_type
 
-        self.history_size: int = history_size
-        self.column_names = column_names
-        self.history: Deque = Deque()  # contains arrays (each line in csv format), with length history_size
+        self.history = DataHistory(history_size, column_names)
 
     # Data msg: <name>:<time>, <value>
     # Init msg: <name>, <graph1>, <graph2>:<name>, <graph1>:<name>, <graph2> ...
 
     def build_packet(self) -> str:
-        csv: str = ""
-        for datum in self.history:
-            for p in datum:
-                csv += str(p) + ","
+        history: {} = self.history.__dict__()
+        packet = {
+            "tag" : "data",
+            self.name : history
+        }
 
-            csv = csv[:-1]
-            csv += "\n"
-
-        if len(self.history) == 1:
-            csv = csv[:-1]
-
-        return self.name + ":" + csv
+        return json.dumps(packet)
 
     def update(self, data_line: []) -> None:
-        if not (len(data_line) == len(self.column_names)):
-            raise ValueError("Line of data must be same size as amount of titles")
-
-        self.history.appendleft(data_line)
-        if len(self.history) > self.history_size:
-            self.history.pop()  # remove element from end (oldest element)
-
+        self.history.push(data_line)
         FrontEnd.broadcast_message(self.build_packet())
