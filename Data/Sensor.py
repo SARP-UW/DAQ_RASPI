@@ -4,25 +4,20 @@ from Data.Display import Display
 
 class Sensor:
     def __init__(self,
-                 adcName: str,
+                 name: str,
+                 logfile: str,
+                 display_ind: int,
                  conversion_function: Callable[[float], float],
                  ADCInputNum: int,
-
-                 display: Display,
-                 saveStrategy: Callable[[float], None]
                  ):
-        self.adcName: str = adcName
+        self.name:str = name
+        self.logfile: str = logfile
+        self.display_ind: int = display_ind
         self.conversion_function: Callable[[float], float] = conversion_function
         self.ADCInputNum: int = ADCInputNum
 
-        self.display: Display = display
-        self.saveStrategy: Callable[[float], None] = saveStrategy
-
-    def update(self, time_stamp: float) -> None:
+    def read_val(self) -> float:
         voltage: float = random.randint(0, 10)
         value: float = self.conversion_function(voltage)
 
-        self.saveStrategy(value)
-
-        data: [] = [str(time_stamp), str(value)]
-        self.display.update(data)
+        return value

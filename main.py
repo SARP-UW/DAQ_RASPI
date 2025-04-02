@@ -1,63 +1,37 @@
+# External imports
 import threading
 from pathlib import Path
 from typing import Callable
-from Data.Sensor import Sensor
-import Website.Frontend as frontend
-from Data.Display import Display, Display_Type
-from Data.DataLogger import DataLogger
 import time
 from functools import partial
 
-
-def saveStrategy(filepath: str, value: float) -> None:
-    with open(filepath, "a") as file:
-        file.write(str(time.time()) + ", " + str(value) + "\n")
-
-
+# Internal imports
+import Website.Frontend as frontend
+from Data.Sensor import Sensor
+from Data.DataLogger import DataLogger
+from Data.DisplayManager import DisplayManager
 
 def main() -> None:
     conversion_func: Callable[[float], float] = lambda x: x % 10
-
     data_logger = DataLogger(Path("logs/"))
+    display_manager = DisplayManager(3)
 
-    testSensor1: Sensor = Sensor(
-
-        "test1",
-        conversion_func,
-        0,
-
-        Display("test1", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
-        partial(data_logger.log, "testsensor1.txt")
-    )
-
-    testSensor2: Sensor = Sensor(
-        "test2",
-        conversion_func,
-        0,
-
-        Display("test2", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
-        partial(data_logger.log, "testsensor2.txt")
-    )
-
-    testSensor3: Sensor = Sensor(
-        "test3",
-        conversion_func,
-        0,
-
-        Display("test3", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
-        partial(data_logger.log, "testsensor3.txt")
-    )
+    sensors = {
+            Sensor("test1", "log1", 2, conversion_func, 0),
+            Sensor("test2", "log2", 0, conversion_func, 0),
+            Sensor("test3", "log2", 1, conversion_func, 0)
+            }
 
     thread = threading.Thread(target=frontend.start_flask, daemon=True)
     thread.start()
 
     while True:
-        
-        testSensor1.update(time.time())
-        time.sleep(0.1)
-        testSensor2.update(time.time())
-        time.sleep(0.1)
-        testSensor3.update(time.time())
+        cur_time = time.time();
+        for sensor in sensors:
+            result = sensor.read_val()
+            data_logger.log(sensor.logfile, cur_time, result)
+            display_manager.display(sensor.display_ind, cur_time, result)
+
         time.sleep(0.1)
 
 

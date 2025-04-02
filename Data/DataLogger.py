@@ -8,10 +8,10 @@ class DataLogger:
 
         self.dest = dest
 
-    def log(self, name: str, value: float) -> None:
+    def log(self, name: str, time: float, value: float) -> None:
         fullpath = self.dest / name
         if not fullpath.exists():
-            fullpath.write_text(str(time.time()) + ", " + str(value) + "\n")
+            fullpath.write_text(str(time) + ", " + str(value) + "\n")
         else:
             with fullpath.open("a") as file:
-                file.write(str(time.time()) + ", " + str(value) + "\n")
+                file.write(str(time) + ", " + str(value) + "\n")
