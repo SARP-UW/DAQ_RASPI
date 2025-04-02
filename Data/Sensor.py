@@ -2,9 +2,7 @@ from typing import Callable
 import random
 from Data.Display import Display
 
-
 class Sensor:
-
     def __init__(self,
                  adcName: str,
                  conversion_function: Callable[[float], float],

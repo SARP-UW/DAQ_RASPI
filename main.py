@@ -1,8 +1,10 @@
 import threading
+from pathlib import Path
 from typing import Callable
 from Data.Sensor import Sensor
 import Website.Frontend as frontend
 from Data.Display import Display, Display_Type
+from Data.DataLogger import DataLogger
 import time
 from functools import partial
 
@@ -16,13 +18,16 @@ def saveStrategy(filepath: str, value: float) -> None:
 def main() -> None:
     conversion_func: Callable[[float], float] = lambda x: x % 10
 
+    data_logger = DataLogger(Path("logs/"))
+
     testSensor1: Sensor = Sensor(
+
         "test1",
         conversion_func,
         0,
 
         Display("test1", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
-        partial(saveStrategy, "logs/testsensor1.txt")
+        partial(data_logger.log, "testsensor1.txt")
     )
 
     testSensor2: Sensor = Sensor(
@@ -31,7 +36,7 @@ def main() -> None:
         0,
 
         Display("test2", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
-        partial(saveStrategy, "logs/testsensor2.txt")
+        partial(data_logger.log, "testsensor2.txt")
     )
 
     testSensor3: Sensor = Sensor(
@@ -40,13 +45,14 @@ def main() -> None:
         0,
 
         Display("test3", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
-        partial(saveStrategy, "logs/testsensor2.txt")
+        partial(data_logger.log, "testsensor3.txt")
     )
 
     thread = threading.Thread(target=frontend.start_flask, daemon=True)
     thread.start()
 
     while True:
+        
         testSensor1.update(time.time())
         time.sleep(0.1)
         testSensor2.update(time.time())
