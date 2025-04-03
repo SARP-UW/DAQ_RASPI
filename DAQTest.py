@@ -3,9 +3,11 @@ import spidev
 
 
 spi = spidev.SpiDev()
+spi.max_speed_hz = 1000000
+spi.mode = 0x01
 spi.open(0, 0)
 
-spi.xfer2([0b00001000])
+# spi.xfer2([0b00001000])
 
 while True:
     recieved = spi.xfer2([0b00010010, 0x00, 0x00, 0x00])
