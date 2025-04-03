@@ -16,7 +16,8 @@ RDATA = [0x12]  # Read data command
 
 def send_command(command):
     """Send a command to the ADS124S08 and receive the response."""
-    response = spi.xfer2(command)
+    # Send the command and receive the response
+    response = spi.xfer2(command + [0x00] * (len(command)))  # Send command and receive data
     time.sleep(0.1)  # Wait for the command to be processed
     return response
 
