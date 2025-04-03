@@ -12,12 +12,11 @@ WAKEUP = [0x02]  # Wake-up command
 RESET = [0x06]  # Reset command
 START = [0x08]  # Start conversion command
 STOP = [0x0A]  # Stop conversion command
-RDATA = [0x12]  # Read data command
+RDATA = [0x12, 0x00, 0x00, 0x00]  # Read data command
 
 def send_command(command):
     """Send a command to the ADS124S08 and receive the response."""
-    # Send the command and receive the response
-    response = spi.xfer2(command + [0x00] * (len(command)))  # Send command and receive data
+    response = spi.xfer2(command)
     time.sleep(0.1)  # Wait for the command to be processed
     return response
 
@@ -29,7 +28,7 @@ def read_data():
     time.sleep(0.1)
     send_command(START)  # Start a conversion
     time.sleep(0.1)
-    response = send_command(RDATA)  # Read data
+    response = spi.xfer2(RDATA)  # Read data
     # The ADS124S08 returns a 3-byte data word
     data = (response[1] << 16) | (response[2] << 8) | response[3]
     return data
