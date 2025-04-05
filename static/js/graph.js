@@ -1,33 +1,3 @@
-
-const SMOOTHIE_CHART_OPTIONS = {
-  tooltip: true,
-  responsive: true,
-  maxValueScale: 2,
-  minValueScale: 2,
-  scaleSmoothing: 0.3,
-  tooltipLine: { 
-    lineWidth: 3, 
-    strokeStyle: '#BBBBBB' 
-  },
-  grid: { 
-    strokeStyle: '#555555', 
-    fillStyle: '#000000', 
-    lineWidth: 1 
-  },
-  labels: { 
-    fillStyle: '#ffffff',
-    showIntermediateLabels: true
-  },
-};
-
-const SMOOTHIE_TIME_SERIES_OPTIONS = {
-  tooltipLabel: sourceName,
-  strokeStyle: sourceColor, 
-  lineWidth: 2
-};
-
-const SMOOTHIE_CHART_DELAY = 1000;
-
 /**
  * TODO
  */
@@ -37,10 +7,11 @@ class Graph {
    * TODO
    * @param {string} name - TODO
    */
-  constructor (name) {
+  constructor(name) {
     this.name = name;
     this.sourceList = [];
-    this.smoothieChart = new SmoothieChart(SMOOTHIE_CHART_OPTIONS);
+    this.smoothieChart = new SmoothieChart(SMOOTHIE_CHART_OPT);
+    this.curColorIndex = Math.floor(Math.random() * COLOR_LIST.length);
 
     this.graphContainer = document.createElement("div");
     this.graphContainer.className = "graph-container";
@@ -63,24 +34,87 @@ class Graph {
     this.graphTitle.id = name + "-graph-title";
     this.graphTitle.innerText = name;
     this.graphTextGrid.appendChild(this.graphTitle);
+
+    this.resizeHandler = () => {
+      let totalHeight = 0;
+      let gridStyles = window.getComputedStyle(this.graphTextGrid);
+      totalHeight += parseFloat(gridStyles.paddingTop);
+      totalHeight += parseFloat(gridStyles.paddingBottom);
+      totalHeight += parseFloat(gridStyles.marginTop);
+      totalHeight += parseFloat(gridStyles.marginBottom);
+      totalheight += (this.graphTitle.offsetHeight + TEXT_FLEX_GAP);
+      for (let source of this.sourceList) {
+        for (let textElement of source.textList) {
+          if (textElement.parentNode === this.graphTextGrid) {
+            totalHeight += (textElement.offsetHeight + TEXT_FLEX_GAP);
+          }
+        }
+      }
+      totalHeight = Math.ceil(Math.max(totalHeight, GRAPH_MIN_HEIGHT));
+      totalHeight += GRAPH_HEIGHT_ADJ;
+      this.graphContainer.style.height = totalHeight + "px";
+    };
+    window.addEventListener("resize", this.resizeHandler);
   }
 
-  add_source(source_obj) {
-    this.sourceList.push(source_obj);
-    this.smoothieChart.addTimeSeries(source_obj.timeSeries, SMOOTHIE_TIME_SERIES_OPTIONS);
+  /**
+   * TODO
+   * @param {Source} sourceObj - TODO
+   */
+  addSource(sourceObj) {
+    if (!this.sourceList.includes(sourceObj)) {
+      this.sourceList.push(sourceObj);
+      sourceObj.graphList.push(this);
 
-    let sourceText = document.createElement("div");
-    sourceText.className = "source-text";
-    sourceText.id = source_obj.name + "-source-text";
-    sourceText.innerText = source_obj.name + ": " + source_obj.unit;
-    this.graphTextGrid.appendChild(sourceText);
-    source_obj.sourceTextList.push(sourceText);
+      let sourceColor = COLOR_LIST[this.curColorIndex];
+      this.curColorIndex = (this.curColorIndex + 1) % COLOR_LIST.length;
+      this.smoothieChart.addTimeSeries(sourceObj.timeSeries, {
+        tooltipLabel: sourceObj.name, 
+        strokeStyle: sourceColor, 
+        lineWidth: 2
+      });
+
+      let sourceText = document.createElement("div");
+      sourceText.className = "source-text";
+      sourceText.id = sourceObj.name + "-source-text";
+      sourceText.innerText = sourceObj.name + ": " + sourceObj.latestValue + sourceObj.unit;
+      sourceText.style.color = sourceColor;
+      this.graphTextGrid.appendChild(sourceText);
+      sourceObj.textList.push(sourceText);
+    }
   }
 
-  remove_source(source_obj) {
-
+  /**
+   * TODO
+   * @param {Source} sourceObj - TODO
+   */
+  removeSource(sourceObj) {
+    if (this.sourceList.includes(sourceObj)) {
+      this.smoothieChart.removeTimeSeries(sourceObj.timeSeries);
+      for (let textElement of sourceObj.textList) {
+        if (textElement.parentNode === this.graphTextGrid) {
+          this.graphTextGrid.removeChild(textElement);
+        }
+      }
+      sourceObj.graphList = sourceObj.graphList.filter(
+        (element) => element !== this
+      );
+      sourceObj.textList = sourceObj.textList.filter(
+        (element) => element.parentNode !== this.graphTextGrid
+      );
+    }
   }
 
-
-
+  /**
+   * TODO
+   */
+  destroy() {
+    this.graphContainer.remove();
+    this.smoothieChart.stopSmoothie();
+    window.removeEventListener("resize", this.resizeHandler);
+    for (let i = this.sourceList.length - 1; i >= 0; i--) {
+      this.removeSource(this.sourceList[i]);
+    }
+  }
 }
+

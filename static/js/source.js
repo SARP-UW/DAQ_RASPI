@@ -1,4 +1,3 @@
-
 /**
  * TODO
  */
@@ -9,11 +8,13 @@ class Source {
    * @param {string} name - TODO
    * @param {string} unit - TODO
    */
-  constructor (name, unit) {
+  constructor(name, unit) {
     this.name = name;
     this.unit = unit;
     this.timeSeries = new TimeSeries();
-    this.sourceTextList = [];
+    this.latestValue = NaN;
+    this.textList = [];
+    this.graphList = [];
   }
 
   /**
@@ -21,31 +22,20 @@ class Source {
    * @param {number} time - TODO
    * @param {number} value - TODO
    */
-  add_data(time, value) {
-    if (typeof time === "string") {
-      time = parseFloat(time);
-    }
-    if (typeof value === "string") {
-      value = parseFloat(value);
-    }
-    if (isNaN(time) || isNaN(value)) {
-      
-    }
+  addData(time, value) {
+    this.latestValue = value;
     this.timeSeries.append(time, value);
-    for (let sourceText of this.sourceTextList) {
-      sourceText.innerText = this.name + ": " + value + this.unit; 
+    for (let text of this.textList) {
+      text.innerText = this.name + ": " + value + this.unit;
     }
   }
 
-  add_source_text(source_text) {
-    this.sourceTextList.push(source_text);
-    source_text.innerText = this.name + ":" + "NaN";
+  /**
+   * TODO
+   */
+  destroy() {
+    for (let i = this.graphList.length - 1; i >= 0; i--) {
+      this.graphList[i].removeSource(this);
+    }
   }
-
-  remove_source_text(source_text) {
-    this.sourceTextList = this.sourceTextList.filter(
-      (source_text) => element !== source_text
-    );
-  }
-
 }
