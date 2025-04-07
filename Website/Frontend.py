@@ -14,11 +14,12 @@ def control():
     return "Hello World"
 
 
-join_message = "test1,c,graph1:test2,c,graph2,graph3:test3,c,graph1,graph3"
+join_message = "0,c,graph1:1,c,graph2,graph3:2,c,graph1,graph3"
 @socketio.on('connect')
 def on_connect():
     sid = request.sid
     socketio.emit("message", join_message, room=sid)
+
 @socketio.on("message")
 def onReceive(message):
     pass
