@@ -10,6 +10,7 @@ class Graph {
   constructor(name) {
     this.name = name;
     this.sourceList = [];
+    this.destroyCallbackList = [];
     this.smoothieChart = new SmoothieChart(SMOOTHIE_CHART_OPT);
     this.curColorIndex = Math.floor(Math.random() * COLOR_LIST.length);
 
@@ -35,6 +36,12 @@ class Graph {
     this.graphTitle.innerText = name;
     this.graphTextGrid.appendChild(this.graphTitle);
 
+    this.sourceDestroyCallback = (sourceObj) => {
+      this.sourceList = this.sourceList.filter(
+        (element) => element !== sourceObj
+      );
+    };
+
     this.resizeHandler = () => {
       let totalHeight = 0;
       let gridStyles = window.getComputedStyle(this.graphTextGrid);
@@ -59,28 +66,34 @@ class Graph {
 
   /**
    * TODO
+   * @param {function} callback - TODO
+   */
+  addDestroyCallback(callback) {
+    this.destroyCallbackList.push(callback);
+  }
+
+  /**
+   * TODO
+   * @param {function} callback - TODO
+   */
+  removeDestroyCallback(callback) {
+    this.destroyCallbackList = this.destroyCallbackList.filter(
+      (element) => element !== callback
+    );
+  }
+
+  /**
+   * TODO
    * @param {Source} sourceObj - TODO
    */
   addSource(sourceObj) {
     if (!this.sourceList.includes(sourceObj)) {
       this.sourceList.push(sourceObj);
-      sourceObj.graphList.push(this);
-
       let sourceColor = COLOR_LIST[this.curColorIndex];
       this.curColorIndex = (this.curColorIndex + 1) % COLOR_LIST.length;
-      this.smoothieChart.addTimeSeries(sourceObj.timeSeries, {
-        tooltipLabel: sourceObj.name, 
-        strokeStyle: sourceColor, 
-        lineWidth: 2
-      });
-
-      let sourceText = document.createElement("div");
-      sourceText.className = "source-text";
-      sourceText.id = sourceObj.name + "-source-text";
-      sourceText.innerText = sourceObj.name + ": " + sourceObj.latestValue + sourceObj.unit;
-      sourceText.style.color = sourceColor;
-      this.graphTextGrid.appendChild(sourceText);
-      sourceObj.textList.push(sourceText);
+      sourceObj.addText(this.graphTextGrid, sourceColor);
+      sourceObj.linkSmoothieChart(this.smoothieChart, sourceColor);
+      sourceObj.addDestroyCallback(this.sourceDestroyCallback);
     }
   }
 
@@ -90,17 +103,11 @@ class Graph {
    */
   removeSource(sourceObj) {
     if (this.sourceList.includes(sourceObj)) {
-      this.smoothieChart.removeTimeSeries(sourceObj.timeSeries);
-      for (let textElement of sourceObj.textList) {
-        if (textElement.parentNode === this.graphTextGrid) {
-          this.graphTextGrid.removeChild(textElement);
-        }
-      }
-      sourceObj.graphList = sourceObj.graphList.filter(
-        (element) => element !== this
-      );
-      sourceObj.textList = sourceObj.textList.filter(
-        (element) => element.parentNode !== this.graphTextGrid
+      sourceObj.removeText(this.graphTextGrid);
+      sourceObj.unlinkSmoothieChart(this.smoothieChart);
+      sourceObj.removeDestroyCallback(this.sourceDestroyCallback);
+      this.sourceList = this.sourceList.filter(
+        (element) => element !== sourceObj
       );
     }
   }
@@ -109,12 +116,15 @@ class Graph {
    * TODO
    */
   destroy() {
-    this.graphContainer.remove();
-    this.smoothieChart.stopSmoothie();
-    window.removeEventListener("resize", this.resizeHandler);
+    for (let callback of this.destroyCallbackList) {
+      callback(this);
+    }
     for (let i = this.sourceList.length - 1; i >= 0; i--) {
       this.removeSource(this.sourceList[i]);
     }
+    this.graphContainer.remove();
+    this.smoothieChart.stopSmoothie();
+    window.removeEventListener("resize", this.resizeHandler);
   }
 }
 

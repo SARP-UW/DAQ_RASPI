@@ -1,7 +1,11 @@
-const socket = io.connect("http://" + document.domain + ":" + location.port);
+// List of source and graph objects.
 var sourceList = [];
 var graphList = [];
 
+// Initialize socket connection
+const socket = io.connect("http://" + document.domain + ":" + location.port);
+
+// Parses incoming messages on socket.
 socket.on('message', function(msg) {
   let msg_obj_list = JSON.parse(msg);
   for (msg_obj of msg_obj_list) {
@@ -54,10 +58,18 @@ socket.on('message', function(msg) {
           graph.removeSource(source);
         }
         break;
+      case "setStatus":
+        let statusText = msg_obj.data.statusText;
+        let statusColor = msg_obj.data.statusColor;
+        let textElement = document.getElementById('system-status-text');
+        textElement.innerText = statusText;
+        textElement.style.color = statusColor;
+        break;
     }
   }
 });
 
+// Close socket connection by destroying all graphs and sources.
 socket.on("close", function() {
   console.log("WebSocket closed.");
   for (let i = graphList.length - 1; i >= 0; i--) {
@@ -68,6 +80,42 @@ socket.on("close", function() {
   }
 });
 
+// Log errors from socket.
 socket.on("error", function(error) {
-  console.error("WebSocket error: ", error);
+  console.log("WebSocket error: " + error);
+});
+
+/**
+ * TODO
+ */
+function updateServerStatusText() {
+  let textElement = document.getElementById('server-status-text');
+  switch (socket.readyState) {
+    case WebSocket.CONNECTING:
+      textElement.innerText = "Connecting";
+      textElement.style.color = "orange";
+      break;
+    case WebSocket.OPEN:
+      textElement.innerText = "Connected";
+      textElement.style.color = "green";
+      break;
+    case WebSocket.CLOSING:
+      textElement.innerText = "Closing";
+      textElement.style.color = "orange";
+      break;
+    case WebSocket.CLOSED:
+      textElement.innerText = "Disconnected";
+      textElement.style.color = "red";
+      break;
+    default:
+      textElement.innerText = "Unknown";
+      textElement.style.color = "gray";
+      break;
+  }
+  setInterval(updateServerStatusText, 1000);
+}
+
+// Start updating server status text once DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  updateServerStatusText();
 });
