@@ -11,25 +11,30 @@ spi.mode = 0x01
 
 
 GPIO.setmode(GPIO.BCM)
-pin_number = 17
-GPIO.setup(pin_number, GPIO.OUT)
 
-GPIO.output(pin_number, GPIO.HIGH)
+GPIO.setup(17, GPIO.OUT)
+GPIO.setup(27, GPIO.IN)
+
+GPIO.output(17, GPIO.HIGH)
 time.sleep(0.2)
 
 
-GPIO.output(pin_number, GPIO.LOW)
+GPIO.output(17, GPIO.LOW)
 spi.xfer2([0b00001010])
-GPIO.output(pin_number, GPIO.HIGH)
+GPIO.output(17, GPIO.HIGH)
 
 while True:
 
-    GPIO.output(pin_number, GPIO.LOW)
-    recieved = spi.xfer2([0b00010010, 0x00, 0x00, 0x00])
-    GPIO.output(pin_number, GPIO.HIGH)
+    print("--------")
+    if GPIO.input(27):
+        print(time.time())
 
-    data = (recieved[1] << 16) | (recieved[2] << 8) | recieved[3]
-    print(data)
-    time.sleep(0.1)
+    # GPIO.output(17, GPIO.LOW)
+    # recieved = spi.xfer2([0b00010010, 0x00, 0x00, 0x00])
+    # GPIO.output(17, GPIO.HIGH)
+    #
+    # data = (recieved[1] << 16) | (recieved[2] << 8) | recieved[3]
+    # print(data)
+    # time.sleep(0.1)
 
 
