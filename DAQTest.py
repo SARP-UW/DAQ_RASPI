@@ -24,14 +24,13 @@ spi.xfer2([0b00001010])
 GPIO.output(17, GPIO.HIGH)
 
 while True:
+    GPIO.output(17, GPIO.LOW)
+    recieved = spi.xfer2([0b00010010, 0x00, 0x00, 0x00])
+    GPIO.output(17, GPIO.HIGH)
 
-    if not GPIO.input(27):
-        GPIO.output(17, GPIO.LOW)
-        recieved = spi.xfer2([0b00010010, 0x00, 0x00, 0x00])
-        GPIO.output(17, GPIO.HIGH)
+    data = (recieved[1] << 16) | (recieved[2] << 8) | recieved[3]
+    print(data)
 
-        data = (recieved[1] << 16) + (recieved[2] << 8) + recieved[3]
-        print(data)
 
 
 
