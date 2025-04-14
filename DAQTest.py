@@ -26,6 +26,7 @@ GPIO.output(17, GPIO.HIGH)
 while True:
 
     GPIO.output(17, GPIO.LOW)
+    spi.xfer2([0b00001010])
     recieved = spi.xfer2([0b00010010, 0x00, 0x00, 0x00])
     GPIO.output(17, GPIO.HIGH)
 
