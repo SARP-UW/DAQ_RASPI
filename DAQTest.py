@@ -25,7 +25,6 @@ GPIO.output(17, GPIO.HIGH)
 
 while True:
 
-    print("--------")
     if not GPIO.input(27):
         print(time.time())
 
