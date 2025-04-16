@@ -15,8 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
  *
  * Author: Aaron McBride
- * Brief: CSS for the DAQ visualization website.
+ * Brief: Style sheet for all elements of website.
  */
+
+/**************************************************************************************************
+ * General/Miscellaneous Styling
+ **************************************************************************************************/
 
 /* Contains all visible elements */
 body {
@@ -27,8 +31,12 @@ body {
   color: #f0f0f0;
 }
 
-/* Contains all displays */
-#display-grid {
+/**************************************************************************************************
+ * Graph Styling
+ **************************************************************************************************/
+
+/* Flexbox/grid of graph elements. */
+#graph-grid {
   display: flex;
   align-content: flex-start;
   flex-direction: column;
@@ -41,8 +49,8 @@ body {
   box-sizing: border-box;
 }
 
-/* Contains a single display */
-.display-container {
+/* Container which holds all content associated with a graph. */
+.graph-container {
   position: relative;
   background-color: #1d1d1d;
   overflow: visible; 
@@ -57,8 +65,8 @@ body {
   border: 1px solid #3a3a3a;
 }
 
-/* Contains smoothie chart (line plot */
-.display-canvas {
+/* Canvas for smoothie chart associated with graph. */
+.graph-canvas {
   display: block;
   width: 65%;
   min-width: 150px;
@@ -69,8 +77,8 @@ body {
   flex-shrink: 1;
 }
 
-/* Contains all text for display (including title). */
-.display-num-grid {
+/* Flexbox/grid of all text elements associated with graph. */
+.graph-text-grid {
   display: flex;
   flex-direction: column;
   padding: 8px 12px 12px 12px;
@@ -88,8 +96,8 @@ body {
   container-type: inline-size;
 }
 
-/* Title for display/chart */
-.display-title {
+/* Title for graph. */
+.graph-title {
   font-weight: bold;
   text-align: left;
   width: 100%;
@@ -109,8 +117,8 @@ body {
   line-height: 1.5em;
 }
 
-/* Title underline */
-.display-title::after {
+/* Graph title underline. */
+.graph-title::after {
   content: "";
   position: absolute;
   left: 0;
@@ -120,8 +128,8 @@ body {
   background: linear-gradient(to right, #444 0%, #333 40%, transparent 80%);
 }
 
-/* Contains text with value of line on plot */
-.num-container {
+/* Text which displays value of a source on a graph. */
+.source-text {
   text-align: left;
   padding: 0.12em 0.3em;
   width: calc(100% - 0.4em - 2px);
@@ -141,7 +149,7 @@ body {
   line-height: 1;
 }
 
-/* Tooltip box when hovering over chart. */
+/* Tooltip box shown when hovering over graph canvas (smoothie chart). */
 .smoothie-chart-tooltip {
   background: rgba(0, 0, 0, 0.7);
   padding: 8px;
@@ -153,7 +161,11 @@ body {
   z-index: 1000;
 }
 
-/* Website header */
+/**************************************************************************************************
+ * Header Styling
+ **************************************************************************************************/
+
+/* Website header. */
 #header {
   background: linear-gradient(to bottom, #111111, #222222);
   color: #ffffff;
@@ -165,8 +177,8 @@ body {
   border-bottom: 2px solid #333;
 }
 
-/* All header elements */
-.header-content {
+/* Flexbox/grid of text elements in header. */
+#header-text-grid {
   max-width: 1800px;
   margin: 0 auto;
   padding: 0 20px;
@@ -175,15 +187,15 @@ body {
   align-items: center;
 }
 
-/* All text elements in header */
-.header-title {
+/* All text elements in header. */
+.header-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-/* "SARP" text in header */
-.header-title h1 {
+/* "SARP" text in header. */
+#header-title-text {
   font-weight: 700;
   font-size: 2.5rem;
   margin: 0;
@@ -197,7 +209,7 @@ body {
 }
 
 /* "DAQ Visualization" text in header */
-.header-title h2 {
+#header-subtitle-text {
   font-weight: 300;
   font-size: 1rem;
   margin: 0;
@@ -206,32 +218,8 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Footer element at bottom of website */
-#footer {
-  background: #111111;
-  color: #888888;
-  padding: 15px 0;
-  border-top: 2px solid #333333;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.699);
-  font-size: 0.85rem;
-  margin-top: 20px;
-}
-
-/* All footer elements */
-.footer-content {
-  max-width: 1800px;
-  margin: 0 auto;
-  padding: 0 20px;
-  text-align: center;
-}
-
-/* Copyright text in footer */
-.footer-content p {
-  margin: 0;
-}
-
-/* Time display in header */
-.header-time {
+/* Time text in header. */
+#header-time-text {
   font-size: 1.2rem;
   font-weight: 500;
   color: #ffffff;
@@ -243,41 +231,85 @@ body {
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.2) inset;
 }
 
-/* Responsive layout corrections. */
+/**************************************************************************************************
+ * Footer Styling
+ **************************************************************************************************/
+
+/* Footer element at bottom of website. */
+#footer {
+  background: #111111;
+  color: #888888;
+  padding: 15px 0;
+  border-top: 2px solid #333333;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.699);
+  font-size: 0.85rem;
+  margin-top: 20px;
+}
+
+/* Flexbox/grid of all text elements in footer. */
+#footer-text-grid {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 20px;
+  text-align: center;
+}
+
+/* Class of text elements in footer. */
+.footer-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Footer copyright text */
+#footer-copyright-text {
+  font-size: 0.8rem;
+  color: #888888;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+/**************************************************************************************************
+ * Responsive Layout Corrections
+ **************************************************************************************************/
+
 @media screen and (min-width: 800px) {
-  #display-grid {
+  #graph-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
 }
+
 @media screen and (min-width: 1200px) {
-  .display-num-grid {
+  .graph-text-grid {
     max-width: 320px;
   }
 }
+
 @media screen and (max-width: 480px) {
-  .display-container {
+  .graph-container {
     flex-direction: column;
     gap: 15px;
     padding: 10px;
   } 
-  .display-canvas, .display-num-grid {
+  .graph-canvas, .graph-text-grid {
     width: 100%;
     max-width: none;
   }
 }
+
 @media screen and (max-width: 600px) {
-  .header-title h1 {
+  #header-title-text {
     font-size: 2rem;
   }
-  
-  .header-title h2 {
+  #header-subtitle-text {
     font-size: 0.9rem;
   }
 }
+
 @media screen and (max-width: 600px) {
-  .header-time {
+  #header-time-text {
     font-size: 1rem;
     padding: 4px 8px;
   }
