@@ -33,6 +33,7 @@ while True:
 
     time.sleep(0.01)
     while not GPIO.input(22):
+        print("here")
         pass
 
     recieved = spi.xfer2([0b00010010, 0x00, 0x00, 0x00])
