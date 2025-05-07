@@ -25,6 +25,8 @@ GPIO.output(17, GPIO.HIGH)
 
 while True:
 
+    time.sleep(0.2)
+
     GPIO.output(17, GPIO.LOW)
     recieved = spi.xfer2([0b00010010, 0x00, 0x00, 0x00])
     GPIO.output(17, GPIO.HIGH)
@@ -32,6 +34,7 @@ while True:
     data = (recieved[1] << 16) | (recieved[2] << 8) | recieved[3]
     if data != 0:
         print(data)
+
 
 
 
