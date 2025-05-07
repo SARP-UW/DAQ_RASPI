@@ -29,7 +29,7 @@ time.sleep(0.1)
 GPIO.output(17, GPIO.LOW)
 spi.xfer2([0x08])  # START
 GPIO.output(17, GPIO.HIGH)
-GPIO.output(27, GPIO.HIGH)
+# GPIO.output(27, GPIO.HIGH)
 
 time.sleep(0.1)
 
