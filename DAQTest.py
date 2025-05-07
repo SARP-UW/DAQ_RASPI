@@ -15,11 +15,11 @@ GPIO.output(CS, GPIO.HIGH)
 time.sleep(0.1)
 
 GPIO.output(CS, GPIO.LOW)
-spi.xfer2([0x40, 0x01, 0x01, 0x01, 0x00])  # WREG, start at 0x00, write 2 regs: 0x01, 0x00
+spi.xfer2([0x40, 0x01, 0x01, 0x00])  # 4 bytes only
 GPIO.output(CS, GPIO.HIGH)
 time.sleep(0.1)
 
-# Read back
+# Read back and print
 GPIO.output(CS, GPIO.LOW)
 result = spi.xfer2([0x20, 0x01, 0x00, 0x00])  # Read 2 bytes
 GPIO.output(CS, GPIO.HIGH)
