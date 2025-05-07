@@ -14,6 +14,7 @@ GPIO.setmode(GPIO.BCM)
 
 GPIO.setup(17, GPIO.OUT)
 GPIO.setup(27, GPIO.OUT)
+GPIO.setup(22, GPIO.IN)
 
 GPIO.output(17, GPIO.HIGH)
 GPIO.output(27, GPIO.LOW)
@@ -28,10 +29,15 @@ while True:
 
     time.sleep(0.02)
     GPIO.output(27, GPIO.HIGH)
-    time.sleep(0.01)
     GPIO.output(17, GPIO.LOW)
+
+    time.sleep(0.01)
+    while not GPIO.input(22):
+        pass
+
     recieved = spi.xfer2([0b00010010, 0x00, 0x00, 0x00])
     time.sleep(0.01)
+
     GPIO.output(17, GPIO.HIGH)
     GPIO.output(27, GPIO.LOW)
 
