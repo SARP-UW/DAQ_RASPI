@@ -34,7 +34,7 @@ GPIO.output(27, GPIO.HIGH)
 time.sleep(0.1)
 
 while True:
-    while GPIO.input(22):
+    while not GPIO.input(22):
         pass  # wait for DRDY low
 
     GPIO.output(17, GPIO.LOW)
