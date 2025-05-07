@@ -27,6 +27,11 @@ spi.xfer2([0x40, 0x01, 0x01, 0x00])  # WREG to reg 0, write 2 registers
 GPIO.output(17, GPIO.HIGH)
 time.sleep(0.1)
 
+GPIO.output(17, GPIO.LOW)
+resp = spi.xfer2([0x20, 0x01, 0x00, 0x00])  # Read 2 bytes from reg 0
+GPIO.output(17, GPIO.HIGH)
+print("INPMUX, PGA:", resp[2], resp[3])
+
 # Send START command (or just hold START pin HIGH)
 GPIO.output(17, GPIO.LOW)
 spi.xfer2([0x08])  # START
