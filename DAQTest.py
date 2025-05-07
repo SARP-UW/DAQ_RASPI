@@ -19,6 +19,8 @@ GPIO.output(17, GPIO.HIGH)
 GPIO.output(27, GPIO.LOW)
 time.sleep(0.2)
 
+GPIO.output(27, GPIO.HIGH)
+
 # Register write: set INPMUX to AIN0-AIN1 and PGA gain to 1
 GPIO.output(17, GPIO.LOW)
 spi.xfer2([0x40, 0x01, 0x01, 0x00])  # WREG to reg 0, write 2 registers
@@ -29,7 +31,6 @@ time.sleep(0.1)
 GPIO.output(17, GPIO.LOW)
 spi.xfer2([0x08])  # START
 GPIO.output(17, GPIO.HIGH)
-# GPIO.output(27, GPIO.HIGH)
 
 time.sleep(0.1)
 
