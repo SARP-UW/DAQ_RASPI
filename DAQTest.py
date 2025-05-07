@@ -1,54 +1,30 @@
-import time
 import spidev
 import RPi.GPIO as GPIO
+import time
 
-# SPI and GPIO setup
 spi = spidev.SpiDev()
 spi.open(0, 0)
-spi.max_speed_hz = 1000000
-spi.mode = 0x01
+spi.mode = 0b01
 spi.no_cs = True
+spi.max_speed_hz = 500000
 
+CS = 17
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.OUT)  # CS
-GPIO.setup(27, GPIO.OUT)  # START
-GPIO.setup(22, GPIO.IN)   # DRDY
-
-# CS and START initial states
-GPIO.output(17, GPIO.HIGH)
-GPIO.output(27, GPIO.LOW)
-time.sleep(0.2)
-
-GPIO.output(27, GPIO.HIGH)
-
-# Register write: set INPMUX to AIN0-AIN1 and PGA gain to 1
-GPIO.output(17, GPIO.LOW)
-spi.xfer2([0x40, 0x01, 0x01, 0x00])  # WREG to reg 0, write 2 registers
-GPIO.output(17, GPIO.HIGH)
+GPIO.setup(CS, GPIO.OUT)
+GPIO.output(CS, GPIO.HIGH)
 time.sleep(0.1)
 
-GPIO.output(17, GPIO.LOW)
-resp = spi.xfer2([0x20, 0x01, 0x00, 0x00])  # Read 2 bytes from reg 0
-GPIO.output(17, GPIO.HIGH)
-print("INPMUX, PGA:", resp[2], resp[3])
-
-# Send START command (or just hold START pin HIGH)
-GPIO.output(17, GPIO.LOW)
-spi.xfer2([0x08])  # START
-GPIO.output(17, GPIO.HIGH)
-
+# Write to register 0 (INPMUX) and 1 (PGA)
+print("Writing config...")
+GPIO.output(CS, GPIO.LOW)
+spi.xfer2([0x40, 0x01, 0x01, 0x00])  # WREG, 2 bytes: INPMUX=1, PGA=0
+GPIO.output(CS, GPIO.HIGH)
 time.sleep(0.1)
 
-while True:
-    while not GPIO.input(22):
-        pass  # wait for DRDY low
+# Read back those registers
+print("Reading back config...")
+GPIO.output(CS, GPIO.LOW)
+result = spi.xfer2([0x20, 0x01, 0x00, 0x00])  # RREG, 2 bytes
+GPIO.output(CS, GPIO.HIGH)
 
-    GPIO.output(17, GPIO.LOW)
-    result = spi.xfer2([0x12, 0x00, 0x00, 0x00])  # RDATA
-    GPIO.output(17, GPIO.HIGH)
-
-    raw = (result[1] << 16) | (result[2] << 8) | result[3]
-
-
-    print(raw)
-    time.sleep(0.1)
+print("INPMUX =", hex(result[2]), "PGA =", hex(result[3]))
