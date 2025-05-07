@@ -7,7 +7,7 @@ spi = spidev.SpiDev()
 spi.open(0, 0)
 spi.max_speed_hz = 1000000
 spi.mode = 0x01
-spi.no_cs = True  # we'll handle CS manually
+spi.no_cs = True
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)  # CS
@@ -43,9 +43,6 @@ while True:
 
     raw = (result[1] << 16) | (result[2] << 8) | result[3]
 
-    # Handle sign extension for 24-bit signed value
-    if raw & 0x800000:
-        raw -= 1 << 24
 
     print(raw)
     time.sleep(0.1)
