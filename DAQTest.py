@@ -1,49 +1,106 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# import the library
+from Adafruit_BBIO.SPI import SPI
+import Adafruit_BBIO.GPIO as GPIO
+
 import time
-import spidev
-import RPi.GPIO as GPIO
 
-# SPI and GPIO setup
-spi = spidev.SpiDev()
+
+class ADS1248:
+    MUX0 = 0x00
+    MUX1 = 0x02
+
+    VBIAS = 0x01
+    SYS0 = 0x03
+
+    OFC0 = 0x04
+    OFC1 = 0x05
+    OFC2 = 0x06
+
+    FSC0 = 0x07
+    FSC1 = 0x08
+    FSC2 = 0x09
+
+    IDAC0 = 0x0a
+    IDAC1 = 0x0b
+
+    GPIOCFG = 0x0c
+    GPIODIR = 0x0d
+    GPIODAT = 0x0e
+
+    NOP = 0xff
+    WREG = 0x40
+    RREG = 0x20
+    RDATA = 0x12
+
+    # custom settings
+    STARTPIN = "P9_15"
+
+
+def RegWrite(reg, val):
+    spi.xfer2([ADS1248.WREG + (reg & 0xF), 0x00, val]);
+    return False
+
+
+def RegRead(reg):
+    spi.xfer2([ADS1248.RREG + (reg & 0xF), 00]);
+    r = spi.xfer2([0x00]);  # dummy
+    return r
+
+
+def ReadADC():
+    spi.writebytes([ADS1248.RDATA])  # RDATA (read data once, page 49)
+    a = spi.readbytes(3)
+    spi.writebytes([ADS1248.NOP])  # sending NOP
+
+    return a
+
+
+def ADCinit():
+    RegWrite(ADS1248.MUX0, 0b00000001);  # MUX0:  Pos. input: AIN0, Neg. input: AIN1 (Burnout current source off)
+    RegWrite(ADS1248.MUX1, 0b00100000);  # MUX1:  REF0, normal operation
+    RegWrite(ADS1248.SYS0, 0b00000000);  # SYS0:  PGA Gain = 1, 5 SPS
+    RegWrite(ADS1248.IDAC0, 0b00000000);  # IDAC0: off
+    RegWrite(ADS1248.IDAC1, 0b11001100);  # IDAC1: n.c.
+    RegWrite(ADS1248.VBIAS, 0b00000000);  # VBIAS: BIAS voltage disabled
+    RegWrite(ADS1248.OFC0, 0b00000000);  # OFC0:  0 => reset offset calibration
+    RegWrite(ADS1248.OFC1, 0b00000000);  # OFC1:  0 => reset offset calibration
+    RegWrite(ADS1248.OFC2, 0b00000000);  # OFC2:  0 => reset offset calibration
+    RegWrite(ADS1248.GPIOCFG, 0b00000000);  # GPIOCFG: all used as analog inputs
+    RegWrite(ADS1248.GPIODIR, 0b00000000);  # GPIODIR: -
+    RegWrite(ADS1248.GPIODAT, 0b00000000);  # GPIODAT: -
+
+
+spi = SPI(0, 0)  # /dev/spidev1.0
+spi.msh = 10000  # SPI clock set to 100 kHz
+spi.bpw = 8  # bits/word
+spi.threewire = False
+spi.lsbfirst = False
+spi.mode = 1
+spi.cshigh = False  # ADS1248 chip select (active low)
 spi.open(0, 0)
-spi.max_speed_hz = 500000
-spi.mode = 0b01
-spi.no_cs = True
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.OUT)  # CS
-GPIO.setup(27, GPIO.OUT)  # START
-GPIO.setup(22, GPIO.IN)   # DRDY
+GPIO.setup("P9_14", GPIO.OUT)
 
-# CS and START initial states
-GPIO.output(17, GPIO.HIGH)
-GPIO.output(27, GPIO.LOW)
-time.sleep(0.2)
+# drive START high to start conversion
 
-GPIO.output(27, GPIO.HIGH)
+GPIO.setup(ADS1248.STARTPIN, GPIO.OUT)
+GPIO.output(ADS1248.STARTPIN, GPIO.HIGH)
 
-# Register write: set INPMUX to AIN0-AIN1 and PGA gain to 1
-GPIO.output(17, GPIO.LOW)
-spi.xfer2([0x40, 0x01, 0x01, 0x00])  # WREG to reg 0, write 2 registers
-GPIO.output(17, GPIO.HIGH)
-time.sleep(0.1)
+time.sleep(0.02)
 
-# Send START command (or just hold START pin HIGH)
-GPIO.output(17, GPIO.LOW)
-spi.xfer2([0x08])  # START
-GPIO.output(17, GPIO.HIGH)
-
-time.sleep(0.1)
+ADCinit()
 
 while True:
-    while not GPIO.input(22):
-        pass  # wait for DRDY low
+    GPIO.output("P9_14", GPIO.HIGH)
 
-    GPIO.output(17, GPIO.LOW)
-    result = spi.xfer2([0x12, 0x00, 0x00, 0x00])  # RDATA
-    GPIO.output(17, GPIO.HIGH)
-
-    raw = (result[1] << 16) | (result[2] << 8) | result[3]
-
-
-    print(raw)
-    time.sleep(0.1)
+    a = ReadADC()
+    V = (a[0] << 16) + (a[1] << 8) + a[2]
+    print("Integer reading: %d" % (V))
+    volts = 1.0 * V / (pow(2, 23) - 1) * 3.37
+    print("U = %.3f V" % (volts))
+    T = volts * 100 - 273.15;
+    print("T = %.2f °C" % (T))
+    GPIO.output("P9_14", GPIO.LOW)
+    time.sleep(1)
