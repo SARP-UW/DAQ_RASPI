@@ -14,17 +14,11 @@ GPIO.setup(CS, GPIO.OUT)
 GPIO.output(CS, GPIO.HIGH)
 time.sleep(0.1)
 
-# Write to register 0 (INPMUX) and 1 (PGA)
-print("Writing config...")
 GPIO.output(CS, GPIO.LOW)
-spi.xfer2([0x40, 0x01, 0x01, 0x00])  # WREG, 2 bytes: INPMUX=1, PGA=0
+returned = spi.xfer2([0b00100101, 0b00000001, 0xFF, 0xFF])  # WREG, 2 bytes: INPMUX=1, PGA=0
 GPIO.output(CS, GPIO.HIGH)
 time.sleep(0.1)
 
-# Read back those registers
-print("Reading back config...")
-GPIO.output(CS, GPIO.LOW)
-result = spi.xfer2([0x20, 0x01, 0x00, 0x00])  # RREG, 2 bytes
-GPIO.output(CS, GPIO.HIGH)
+print(returned[2])
+print(returned[3])
 
-print("INPMUX =", hex(result[2]), "PGA =", hex(result[3]))
