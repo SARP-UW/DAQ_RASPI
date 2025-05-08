@@ -16,7 +16,7 @@ GPIO.output(CS_PIN, GPIO.HIGH)
 spi = spidev.SpiDev()
 spi.open(SPI_BUS, SPI_DEVICE)
 spi.mode = 0b01  # CPOL=0, CPHA=1 (Mode 1)
-spi.max_speed_hz = 500000
+spi.max_speed_hz = 10000
 spi.no_cs = True  # disable kernel CS so we can bit-bang it
 
 
