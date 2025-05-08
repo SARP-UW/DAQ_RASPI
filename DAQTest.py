@@ -71,7 +71,7 @@ def read_adc():
     return raw
 
 # Demo: print ten readings
-for _ in range(10):
+while True:
     val = read_adc()
     print(f"ADC = {val}")
     time.sleep(0.1)
