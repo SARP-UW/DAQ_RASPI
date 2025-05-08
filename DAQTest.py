@@ -1,82 +1,64 @@
+import time
 import spidev
 import RPi.GPIO as GPIO
-import time
 
-# Pin definitions
-CS_PIN   = 17   # manual chip‐select (J3 CS)
-DRDY_PIN = 27   # DOUT/DRDY from J3
+# --- Configuration --------------------------------
+VREF = 2.5   # external reference voltage in volts
+PGA  = 1     # PGA gain setting
 
-# SPI setup
+# SPI and GPIO setup
 spi = spidev.SpiDev()
 spi.open(0, 0)
-spi.mode        = 0b01       # CPOL=0, CPHA=1
-spi.max_speed_hz= 1000000    # 1 MHz is safe (datasheet allows up to 10 MHz) :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
-spi.no_cs       = True       # we’ll bit‐bang CS
+spi.max_speed_hz = 500000
+spi.mode = 0b01
+spi.no_cs = True
 
-# GPIO setup
 GPIO.setmode(GPIO.BCM)
+CS_PIN    = 17  # CS
+START_PIN = 27  # START
+DRDY_PIN  = 22  # DRDY
+
 GPIO.setup(CS_PIN, GPIO.OUT, initial=GPIO.HIGH)
+GPIO.setup(START_PIN, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(DRDY_PIN, GPIO.IN)
 
-def cs_low():
-    GPIO.output(CS_PIN, GPIO.LOW)
-    # tCSSC ≥ 10 ns, so 1 µs is plenty
-    time.sleep(0.000001)
+time.sleep(0.2)
+GPIO.output(START_PIN, GPIO.HIGH)  # hold START high for continuous
 
-def cs_high():
-    # tSCCS ≥ 10 ns
-    time.sleep(0.000001)
-    GPIO.output(CS_PIN, GPIO.HIGH)
+# Configure INPMUX=A0–A1 and PGA=1
+GPIO.output(CS_PIN, GPIO.LOW)
+spi.xfer2([0x40, 0x01, 0x01, 0x00])  # WREG@00h, write 2 regs: INPMUX=0x01, PGA=0x00
+GPIO.output(CS_PIN, GPIO.HIGH)
+time.sleep(0.1)
 
-def send_command(cmd):
-    """Send a single‐byte command to the ADS124S08."""
-    cs_low()
-    spi.xfer2([cmd])
-    cs_high()
+# Send START command
+GPIO.output(CS_PIN, GPIO.LOW)
+spi.xfer2([0x08])  # START
+GPIO.output(CS_PIN, GPIO.HIGH)
+time.sleep(0.1)
 
-# 1) Stop any previous continuous conversions
-send_command(0x11)  # SDATAC :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
-
-# 2) Configure DATARATE register for continuous mode (MODE=0) at e.g. 50 SPS (DR[3:0]=0011)
-#    DATARATE addr = 0x04; reset = 0x14.
-#    E.g. 50 SPS + continuous + internal osc + low-latency filter → 0b0011_0000 = 0x30
-cs_low()
-spi.xfer2([0x40 | 0x04, 0x00, 0x30])  # WREG @04h, 1 reg, value=0x30
-cs_high()
-
-time.sleep(0.01)  # let filter reset
-
-# 3) Start continuous conversions
-send_command(0x08)  # START :contentReference[oaicite:4]{index=4}:contentReference[oaicite:5]{index=5}
-
-def read_adc():
-    """
-    Waits for DRDY to go low, then issues RDATA and reads 3 bytes,
-    returning a signed 24-bit integer.
-    """
-    # 4) Wait for DRDY (active low)
-    while GPIO.input(DRDY_PIN):
+def read_raw():
+    # wait for DRDY → low
+    while not GPIO.input(DRDY_PIN):
         pass
 
-    # 5) Issue RDATA and grab 3 data bytes
-    cs_low()
-    resp = spi.xfer2([0x12, 0xFF, 0xFF, 0xFF])  # RDATA + 3 dummy clocks :contentReference[oaicite:6]{index=6}:contentReference[oaicite:7]{index=7}
-    cs_high()
+    GPIO.output(CS_PIN, GPIO.LOW)
+    resp = spi.xfer2([0x12, 0x00, 0x00, 0x00])  # RDATA + 3 dummy
+    GPIO.output(CS_PIN, GPIO.HIGH)
 
-    # resp[1..3] are Data1, Data2, Data3
     raw = (resp[1] << 16) | (resp[2] << 8) | resp[3]
     # sign-extend 24-bit
     if raw & 0x800000:
         raw -= 1 << 24
     return raw
 
-# Demo: print ten readings
-while True:
-    val = read_adc()
-    print(f"ADC = {val}")
-    time.sleep(0.1)
+def raw_to_volts(code):
+    # full-scale = ±(VREF / PGA); counts = ±(2^23−1)
+    return code * (VREF / PGA) / (2**23 - 1)
 
-# Cleanup
-send_command(0x0A)  # STOP conversions :contentReference[oaicite:8]{index=8}:contentReference[oaicite:9]{index=9}
-spi.close()
-GPIO.cleanup()
+# --- Main loop ------------------------------------
+while True:
+    code = read_raw()
+    volts = raw_to_volts(code)
+    print(f"Voltage = {volts:.6f} V")
+    time.sleep(0.1)
