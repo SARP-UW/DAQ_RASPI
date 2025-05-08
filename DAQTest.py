@@ -2,10 +2,6 @@ import time
 import spidev
 import RPi.GPIO as GPIO
 
-# --- Configuration --------------------------------
-VREF = 2.5   # external reference voltage in volts
-PGA  = 1     # PGA gain setting
-
 # SPI and GPIO setup
 spi = spidev.SpiDev()
 spi.open(0, 0)
@@ -14,51 +10,38 @@ spi.mode = 0b01
 spi.no_cs = True
 
 GPIO.setmode(GPIO.BCM)
-CS_PIN    = 17  # CS
-START_PIN = 27  # START
-DRDY_PIN  = 22  # DRDY
+GPIO.setup(17, GPIO.OUT)  # CS
+GPIO.setup(27, GPIO.OUT)  # START
+GPIO.setup(22, GPIO.IN)   # DRDY
 
-GPIO.setup(CS_PIN, GPIO.OUT, initial=GPIO.HIGH)
-GPIO.setup(START_PIN, GPIO.OUT, initial=GPIO.LOW)
-GPIO.setup(DRDY_PIN, GPIO.IN)
-
+# CS and START initial states
+GPIO.output(17, GPIO.HIGH)
+GPIO.output(27, GPIO.LOW)
 time.sleep(0.2)
-GPIO.output(START_PIN, GPIO.HIGH)  # hold START high for continuous
 
-# Configure INPMUX=A0–A1 and PGA=1
-GPIO.output(CS_PIN, GPIO.LOW)
-spi.xfer2([0x40, 0x01, 0x01, 0x00])  # WREG@00h, write 2 regs: INPMUX=0x01, PGA=0x00
-GPIO.output(CS_PIN, GPIO.HIGH)
+GPIO.output(27, GPIO.HIGH)
+
+# Register write: set INPMUX to AIN0-AIN1 and PGA gain to 1
+GPIO.output(17, GPIO.LOW)
+spi.xfer2([0x40, 0x01, 0x01, 0x00])  # WREG to reg 0, write 2 registers
+GPIO.output(17, GPIO.HIGH)
 time.sleep(0.1)
 
-# Send START command
-GPIO.output(CS_PIN, GPIO.LOW)
+# Send START command (or just hold START pin HIGH)
+GPIO.output(17, GPIO.LOW)
 spi.xfer2([0x08])  # START
-GPIO.output(CS_PIN, GPIO.HIGH)
+GPIO.output(17, GPIO.HIGH)
+
 time.sleep(0.1)
 
-def read_raw():
-    # wait for DRDY → low
-    while not GPIO.input(DRDY_PIN):
-        pass
-
-    GPIO.output(CS_PIN, GPIO.LOW)
-    resp = spi.xfer2([0x12, 0x00, 0x00, 0x00])  # RDATA + 3 dummy
-    GPIO.output(CS_PIN, GPIO.HIGH)
-
-    raw = (resp[1] << 16) | (resp[2] << 8) | resp[3]
-    # sign-extend 24-bit
-    if raw & 0x800000:
-        raw -= 1 << 24
-    return raw
-
-def raw_to_volts(code):
-    # full-scale = ±(VREF / PGA); counts = ±(2^23−1)
-    return code * (VREF / PGA) / (2**23 - 1)
-
-# --- Main loop ------------------------------------
 while True:
-    code = read_raw()
-    volts = raw_to_volts(code)
-    print(f"Voltage = {volts:.6f} V")
+
+    GPIO.output(17, GPIO.LOW)
+    result = spi.xfer2([0x12, 0x00, 0x00, 0x00])  # RDATA
+    GPIO.output(17, GPIO.HIGH)
+
+    raw = (result[1] << 16) | (result[2] << 8) | result[3]
+
+
+    print(raw)
     time.sleep(0.1)
