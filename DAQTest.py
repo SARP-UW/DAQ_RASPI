@@ -35,6 +35,8 @@ GPIO.output(17, GPIO.HIGH)
 time.sleep(0.1)
 
 while True:
+    while not GPIO.input(22):
+        pass  # wait for DRDY low
 
     GPIO.output(17, GPIO.LOW)
     result = spi.xfer2([0x12, 0x00, 0x00, 0x00])  # RDATA
