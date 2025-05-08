@@ -19,6 +19,5 @@ returned = spi.xfer2([0b00100101, 0b00000001, 0xFF, 0xFF])  # WREG, 2 bytes: INP
 GPIO.output(CS, GPIO.HIGH)
 time.sleep(0.1)
 
-print(returned[2])
-print(returned[3])
+print(returned)
 
