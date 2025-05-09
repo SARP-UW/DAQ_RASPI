@@ -60,7 +60,7 @@ body {
 /* Contains smoothie chart (line plot */
 .display-canvas {
   display: block;
-  width: 65%;
+  width: 100%;
   min-width: 150px;
   border: 1px solid #444;
   box-sizing: border-box;

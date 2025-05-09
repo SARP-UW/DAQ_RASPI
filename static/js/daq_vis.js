@@ -49,6 +49,7 @@ const CHART_OPTIONS = {
   responsive: true,
   maxValueScale: 2,
   minValueScale: 2,
+  enableDpiScaling: false,
   scaleSmoothing: 0.3,
   tooltipLine: { 
     lineWidth: 3, 
@@ -206,6 +207,7 @@ function resizeDisplays() {
     const finalHeight = Math.ceil(containerHeight) + 5;
     container.style.height = finalHeight + 'px';
     canvas.style.height = finalHeight + 'px';
+    canvas.height = finalHeight;
     numGrid.style.height = finalHeight + 'px';
   }
 
