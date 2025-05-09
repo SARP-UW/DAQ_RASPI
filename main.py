@@ -68,15 +68,15 @@ def main() -> None:
     try:
         while True:
             testSensor1.update(time.time())
-            time.sleep(0.05)
+            time.sleep(0.005)
             testSensor2.update(time.time())
-            time.sleep(0.05)
+            time.sleep(0.005)
             testSensor3.update(time.time())
-            time.sleep(0.05)
+            time.sleep(0.005)
             testSensor4.update(time.time())
-            time.sleep(0.05)
+            time.sleep(0.005)
             testSensor5.update(time.time())
-            time.sleep(0.05)
+            time.sleep(0.005)
     finally:
         Data.Collection.shutdown_DAQ()
 
