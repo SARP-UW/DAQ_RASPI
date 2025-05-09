@@ -1,6 +1,7 @@
 from typing import Callable
 import random
 from Data.Display import Display
+import Collection
 
 
 class Sensor:
@@ -20,8 +21,16 @@ class Sensor:
         self.display: Display = display
         self.saveStrategy: Callable[[float], None] = saveStrategy
 
+        if self.adcName == "test5":
+            Collection.init_DAQ()
+
     def update(self, time_stamp: float) -> None:
-        voltage: float = random.randint(0, 10)
+        voltage = 0
+        if self.adcName == "test5":
+            voltage = Collection.read_voltage()
+        else:
+            voltage: float = random.randint(0, 10)
+
         value: float = self.conversion_function(voltage)
 
         self.saveStrategy(value)

@@ -5,6 +5,7 @@ import Website.Frontend as frontend
 from Data.Display import Display, Display_Type
 import time
 from functools import partial
+import Data.Collection
 
 
 def saveStrategy(filepath: str, value: float) -> None:
@@ -14,7 +15,7 @@ def saveStrategy(filepath: str, value: float) -> None:
 
 
 def main() -> None:
-    conversion_func: Callable[[float], float] = lambda x: x % 10
+    conversion_func: Callable[[float], float] = lambda x: x
 
     testSensor1: Sensor = Sensor(
         "test1",
@@ -64,17 +65,20 @@ def main() -> None:
     thread = threading.Thread(target=frontend.start_flask, daemon=True)
     thread.start()
 
-    while True:
-        testSensor1.update(time.time())
-        time.sleep(0.1)
-        testSensor2.update(time.time())
-        time.sleep(0.1)
-        testSensor3.update(time.time())
-        time.sleep(0.1)
-        testSensor4.update(time.time())
-        time.sleep(0.1)
-        testSensor5.update(time.time())
-        time.sleep(0.1)
+    try:
+        while True:
+            testSensor1.update(time.time())
+            time.sleep(0.05)
+            testSensor2.update(time.time())
+            time.sleep(0.05)
+            testSensor3.update(time.time())
+            time.sleep(0.05)
+            testSensor4.update(time.time())
+            time.sleep(0.05)
+            testSensor5.update(time.time())
+            time.sleep(0.05)
+    finally:
+        Data.Collection.shutdown_DAQ()
 
 
 if __name__ == '__main__':
