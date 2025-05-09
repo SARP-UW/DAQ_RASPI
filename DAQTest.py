@@ -36,6 +36,7 @@ time.sleep(0.1)
 
 while True:
     while not GPIO.input(22):
+        print("not passed drdy")
         pass  # wait for DRDY low
 
     GPIO.output(17, GPIO.LOW)
