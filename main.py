@@ -18,7 +18,7 @@ def main() -> None:
 
     testSensor1: Sensor = Sensor(
         "test1",
-        conversion_func,
+      conversion_func,
         0,
 
         Display("test1", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
@@ -40,7 +40,25 @@ def main() -> None:
         0,
 
         Display("test3", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
-        partial(saveStrategy, "logs/testsensor2.txt")
+        partial(saveStrategy, "logs/testsensor3.txt")
+    )
+
+    testSensor4: Sensor = Sensor(
+        "test4",
+        conversion_func,
+        0,
+
+        Display("test4", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
+        partial(saveStrategy, "logs/testsensor4.txt")
+    )
+
+    testSensor5: Sensor = Sensor(
+        "test5",
+        conversion_func,
+        0,
+
+        Display("test5", Display_Type.LINE_CHART, 1, ["timestamp", "value"]),
+        partial(saveStrategy, "logs/testsensor5.txt")
     )
 
     thread = threading.Thread(target=frontend.start_flask, daemon=True)
@@ -52,6 +70,10 @@ def main() -> None:
         testSensor2.update(time.time())
         time.sleep(0.1)
         testSensor3.update(time.time())
+        time.sleep(0.1)
+        testSensor4.update(time.time())
+        time.sleep(0.1)
+        testSensor5.update(time.time())
         time.sleep(0.1)
 
 
