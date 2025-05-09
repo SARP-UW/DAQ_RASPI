@@ -21,8 +21,10 @@ class DAQSource:
     '''
     TODO
     '''
-    # cur_time: float = time()
-    # self._file.write(f"{cur_time}, {value}\n") 
+    for logger in self._logger_set:
+      logger._log_data(self, value)
+    for graph in self._graph_set:
+      graph._add_data(self, value)
     ...
 
   
