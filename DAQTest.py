@@ -3,7 +3,7 @@ import spidev
 import RPi.GPIO as GPIO
 
 # ----- User-configurable parameters -----
-VREF = 2.5          # Internal reference voltage (V)
+VREF = 3.3          # Internal reference voltage (V)
 PGA_GAIN = 1        # PGA gain setting
 SPS_DELAY = 1/50.0  # Approximate delay between conversions (sec)
 
