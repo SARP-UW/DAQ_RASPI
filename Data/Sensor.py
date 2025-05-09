@@ -27,7 +27,7 @@ class Sensor:
     def update(self, time_stamp: float) -> None:
         voltage = 0
         if self.adcName == "test5":
-            voltage = Data.Collection.read_voltage()
+            voltage = round(Data.Collection.read_voltage(), 2)
         else:
             voltage: float = random.randint(0, 10)
 
